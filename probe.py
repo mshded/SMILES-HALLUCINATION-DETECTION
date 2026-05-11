@@ -85,17 +85,11 @@ class HallucinationProbe(nn.Module):
             optimizer.step()
 
         self.eval()
-
-        # Важно для инструкции проекта:
-        # solution.py при создании финального predictions.csv вызывает только
-        # final_probe.fit(...), без fit_hyperparameters(...).
-        # Поэтому здесь ставим fallback threshold по labelled data.
-        # В evaluation этот threshold затем переопределяется validation tuning.
         self._tune_threshold_by_accuracy(X, y)
 
         return self
 
-    def _tune_threshold_by_accuracy(
+    def tune_threshold_by_accuracy(
         self,
         X_val: np.ndarray,
         y_val: np.ndarray,

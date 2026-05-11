@@ -20,7 +20,7 @@ from __future__ import annotations
 import torch
 
 
-TAIL_TOKENS = 32
+tail_tokens = 32
 
 
 def aggregate(
@@ -49,7 +49,7 @@ def aggregate(
     real_positions = attention_mask.nonzero(as_tuple=False)
     last_pos = int(real_positions[-1].item())
 
-    tail_start = max(0, last_pos - TAIL_TOKENS + 1)
+    tail_start = max(0, last_pos - tail_tokens + 1)
 
     final_layer = hidden_states[-1]
     layer_minus_4 = hidden_states[-4]
