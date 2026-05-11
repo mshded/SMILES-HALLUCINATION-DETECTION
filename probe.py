@@ -37,10 +37,10 @@ class HallucinationProbe(nn.Module):
             nn.Linear(input_dim, 128),
             nn.LayerNorm(128),
             nn.ReLU(),
-            nn.Dropout(0.4),
+            nn.Dropout(0.35),
             nn.Linear(128, 32),
             nn.ReLU(),
-            nn.Dropout(0.2),
+            nn.Dropout(0.15),
             nn.Linear(32, 1),
         )
 
