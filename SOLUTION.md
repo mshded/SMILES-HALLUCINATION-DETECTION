@@ -28,8 +28,8 @@ The rest of the provided infrastructure was kept unchanged.
 Clone the repository and install the required dependencies:
 
 ```bash
-git clone <YOUR_REPOSITORY_URL>
-cd SMILES-2026-Hallucination-Detection
+git clone https://github.com/mshded/SMILES-HALLUCINATION-DETECTION
+cd SMILES-HALLUCINATION-DETECTION
 
 python -m venv .venv
 source .venv/bin/activate
@@ -63,7 +63,7 @@ This script:
 6. generates final predictions for `data/test.csv`;
 7. writes the submitted predictions to `predictions.csv`.
 
-Expected output files:
+Output files:
 
 ```text
 results.json
@@ -79,8 +79,6 @@ The final solution is based on three main choices:
 1. reduced multi-layer hidden-state aggregation;
 2. a small regularized MLP probe;
 3. repeated stratified train/validation/test splits.
-
-The goal was to improve hard-label performance over the majority-class baseline while keeping the solution simple, reproducible, and compatible with the provided project skeleton.
 
 ---
 
@@ -109,7 +107,7 @@ This aggregation scheme gave a better trade-off than both the original single-ve
 
 The final-layer last-token representation alone may miss useful information distributed across the response sequence and intermediate layers.
 
-Mean pooling over the last 32 tokens adds local response-level context, while representations from layers `-4` and `-8` provide additional intermediate-level signals.
+Mean pooling over the last 32 tokens adds local response level context, while representations from layers `-4` and `-8` provide additional intermediate level signals.
 
 At the same time, I avoided using too many layers because larger feature vectors caused stronger overfitting on the small labelled dataset.
 
@@ -117,7 +115,7 @@ At the same time, I avoided using too many layers because larger feature vectors
 
 ## 5. Probe Classifier
 
-The final classifier is implemented in `probe.py` as a small regularized MLP.
+The final classifier is implemented in `probe.py` as a small MLP.
 
 The architecture is:
 
@@ -194,21 +192,6 @@ The final run produced the following average metrics over five repeated stratifi
 | F1 | 82.49% | 82.92% |
 | AUROC | — | 65.29% |
 
-Full values from `results.json`:
-
-```text
-avg_baseline_accuracy = 0.7019230769
-avg_baseline_f1       = 0.8248587571
-
-avg_test_accuracy     = 0.7269230769
-avg_test_f1           = 0.8291630641
-avg_test_auroc        = 0.6529385771
-
-feature_dim           = 3584
-n_samples             = 689
-n_folds               = 5
-```
-
 The final model improves both main hard-label metrics over the majority-class baseline:
 
 ```text
@@ -220,25 +203,9 @@ Since the primary ranking metric is accuracy, the final model was selected based
 
 ---
 
-## 8. Per-Fold Results
+## 8. Experiments
 
-| Fold | Test Accuracy | Test F1 | Test AUROC |
-|---:|---:|---:|---:|
-| 1 | 67.31% | 79.76% | 62.17% |
-| 2 | 75.00% | 84.71% | 68.18% |
-| 3 | 72.12% | 83.24% | 61.91% |
-| 4 | 74.04% | 82.35% | 67.83% |
-| 5 | 75.00% | 84.52% | 66.37% |
-
-The first fold is weaker than the others, but the average result is still above the majority baseline in both accuracy and F1.
-
----
-
-## 9. Experiments and Failed Attempts
-
-Several alternatives were tested before selecting the final solution.
-
-### 9.1. Larger multi-layer aggregation, 5376 features
+### 8.1. Larger multi-layer aggregation, 5376 features
 
 I first tried a larger aggregation scheme using:
 
@@ -259,7 +226,7 @@ Because of this, I reduced the aggregation scheme to four representations and re
 
 ---
 
-### 9.2. Threshold tuning by F1
+### 8.2. Threshold tuning by F1
 
 I compared threshold tuning by validation F1 and validation accuracy.
 
@@ -269,7 +236,7 @@ Accuracy-based tuning produced better average test accuracy and similar or bette
 
 ---
 
-### 9.3. PCA + Logistic Regression
+### 8.3. PCA + Logistic Regression
 
 I tested a simpler linear probe:
 
@@ -289,7 +256,7 @@ A likely reason is that PCA preserves directions with high variance, not necessa
 
 ---
 
-### 9.4. Further reduced aggregation, 2688 features
+### 8.4. Reduced aggregation, 2688 features
 
 I also tested a smaller aggregation scheme using only:
 
@@ -307,7 +274,7 @@ Therefore, the `3584`-dimensional aggregation was selected.
 
 ---
 
-### 9.5. Smaller MLP, 96 → 24
+### 8.5. Smaller MLP, 96 → 24
 
 To reduce overfitting, I tested a smaller MLP:
 
@@ -332,7 +299,7 @@ Therefore, the `128 → 32` MLP was kept.
 
 ---
 
-### 9.6. Additional geometric/statistical features
+### 8.6. Additional geometric features
 
 I also tested additional compact features based on:
 
@@ -352,7 +319,7 @@ USE_GEOMETRIC = False
 
 ---
 
-## 10. Discussion and Limitations
+## 9. Discussion and Limitations
 
 The final model improves over the majority baseline in both accuracy and F1, but it still has important limitations.
 
@@ -367,20 +334,16 @@ avg_test_auroc  = 0.6529385771
 
 This means that the MLP can fit the small labelled dataset very well, but the probability ranking quality on held-out splits is limited.
 
-This is not surprising because:
+The model has such behavior because:
 
 1. the labelled dataset is small;
 2. the class distribution is imbalanced;
 3. the majority baseline is already strong, especially in F1;
 4. hidden-state features are high-dimensional relative to the number of labelled examples.
 
-Despite this, the final solution was selected because it improves the primary hard-label metric, accuracy, while also slightly improving F1 over the majority baseline.
-
 ---
 
-## 11. Final Submitted Configuration
-
-The final submitted configuration is:
+## 10. Final Configuration
 
 ```text
 aggregation.py:
